@@ -56,6 +56,7 @@ details{border-bottom:1px solid var(--line);padding-block:12px}
 summary{cursor:pointer;font-weight:700;font-size:15px}
 ol{margin:10px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:14px}
 .note{font-size:12px;color:var(--muted);margin-top:8px}
+.guide{gap:18px}.guide li p{margin:0 0 8px;font-size:14px;color:var(--ink)}.shot{display:block;width:100%;max-width:320px;height:auto;border-radius:12px;border:1px solid var(--line)}
 .log{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums;display:flex;flex-direction:column;gap:2px;text-align:center}
 @media (prefers-reduced-motion:no-preference){.stele{transition:transform .4s ease}.resting .stele{transform:translateY(2px)}}
 </style>
@@ -91,15 +92,18 @@ ol{margin:10px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:6px;
     <h2>알림까지 막으려면</h2>
     <p>이 페이지는 내려놓은 시간을 재 줍니다. 알림을 끄는 건 휴대폰 설정이 해야 해서, 한 번만 연결해 두세요.</p>
     <details>
-      <summary>아이폰 (단축어 앱)</summary>
-      <ol>
-        <li>단축어 앱 → 자동화 → 새로운 자동화 → NFC</li>
-        <li>스캔을 누르고 하마비 판석의 표시 자리에 휴대폰 윗부분을 댑니다</li>
-        <li>이름을 '하마비'로 저장하고 '즉시 실행'을 고릅니다</li>
-        <li>동작 추가: 집중 모드 설정 → 방해 금지 켜기</li>
-        <li>동작 추가: URL 열기 → 이 페이지 주소</li>
+      <summary>아이폰 (단축어 앱) · 1분 설정</summary>
+      <ol class="guide">
+        <li><p>단축어 앱을 열고 아래 <b>자동화</b> 탭에서 <b>새로운 자동화</b>를 누릅니다.</p><img class="shot" src="img/step01.jpg" alt="1단계 화면" loading="lazy" width="600"></li>
+        <li><p>목록에서 <b>NFC</b>를 고릅니다.</p><img class="shot" src="img/step02.jpg" alt="2단계 화면" loading="lazy" width="600"></li>
+        <li><p>NFC 태그 옆 <b>스캔</b>을 누릅니다.</p><img class="shot" src="img/step03.jpg" alt="3단계 화면" loading="lazy" width="600"></li>
+        <li><p>휴대폰 윗부분을 하마비 판석의 표시 자리에 댑니다.</p><img class="shot" src="img/step04.jpg" alt="4단계 화면" loading="lazy" width="600"></li>
+        <li><p>태그 이름을 <b>하마비</b>로 적고 확인을 누릅니다.</p><img class="shot" src="img/step05.jpg" alt="5단계 화면" loading="lazy" width="600"></li>
+        <li><p><b>즉시 실행</b>을 고르고 다음을 누릅니다. 실행 알림은 원하면 켜 두세요.</p><img class="shot" src="img/step06.jpg" alt="6단계 화면" loading="lazy" width="600"></li>
+        <li><p><b>새로운 단축어 생성</b>을 누릅니다.</p><img class="shot" src="img/step07.jpg" alt="7단계 화면" loading="lazy" width="600"></li>
+        <li><p>동작 검색에 ‘방해금지’를 입력해 <b>집중 모드</b> 동작을 넣고, <b>전환 · 방해금지 모드</b>로 맞춘 뒤 오른쪽 위 ✓를 누릅니다.</p><img class="shot" src="img/step08.jpg" alt="8단계 화면" loading="lazy" width="600"></li>
       </ol>
-      <p class="note">iPhone XS 이후 기종 기준입니다. iOS 버전에 따라 메뉴 이름이 조금 다를 수 있어요.</p>
+      <p class="note">이제 하마비에 휴대폰을 대면 방해금지가 켜지고, 다시 대면 꺼집니다. 타이머까지 열고 싶다면 8단계에서 ‘URL 열기’ 동작을 추가해 이 페이지 주소를 넣으세요. iPhone XS 이후 기종, iOS 버전에 따라 메뉴 이름이 조금 다를 수 있어요.</p>
     </details>
     <details>
       <summary>안드로이드</summary>
