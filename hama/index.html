@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="한채 경기전 하마비 — 휴대폰을 내려놓은 시간을 재는 하마 모드">
+<title>하마 모드</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap">
+<style>
+/* 레이아웃: 휴대폰 한 화면 — 위에 세로쓰기 비신, 가운데 타이머, 아래 버튼과 설정 안내 */
+:root{
+  --paper:#F0EDE6;      /* 한지 아이보리 (한채 웹사이트 토큰) */
+  --ink:#141412;        /* 먹빛 */
+  --stone:#D9D5CC;      /* 비신 석재 */
+  --stone-edge:#B9B3A7;
+  --muted:#6B675E;
+  --accent:#2F5D50;     /* 뇌록(단청 녹색) */
+  --accent-ink:#F0EDE6;
+  --line:#CFCABF;
+  --serif:"Noto Serif KR","AppleMyungjo","Nanum Myeongjo",serif;
+  --sans:"Noto Sans KR","Pretendard","Apple SD Gothic Neo",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#161614;--ink:#ECE8DF;--stone:#2A2925;--stone-edge:#3D3B35;--muted:#A49F94;--accent:#7FB3A2;--accent-ink:#141412;--line:#34322D;color-scheme:dark}}
+:root[data-theme="dark"]{--paper:#161614;--ink:#ECE8DF;--stone:#2A2925;--stone-edge:#3D3B35;--muted:#A49F94;--accent:#7FB3A2;--accent-ink:#141412;--line:#34322D;color-scheme:dark}
+
+html,body{height:100%}
+body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.6;margin:0}
+.wrap{max-width:440px;margin:0 auto;padding-inline:20px;padding-block:28px 40px;display:flex;flex-direction:column;gap:28px}
+header{display:flex;justify-content:space-between;align-items:baseline}
+.brand{font-family:var(--serif);font-weight:700;font-size:20px;letter-spacing:.02em}
+.tag{font-size:12px;color:var(--muted);letter-spacing:.08em}
+
+.stele{align-self:center;background:var(--stone);border:1px solid var(--stone-edge);border-radius:6px 6px 2px 2px;padding:22px 26px;display:flex;flex-direction:row-reverse;gap:18px;justify-content:center;box-shadow:inset 0 0 0 4px color-mix(in srgb,var(--stone-edge) 35%,transparent)}
+.col{writing-mode:vertical-rl;font-family:var(--serif);font-weight:700;font-size:30px;letter-spacing:.18em;line-height:1}
+.col b{color:var(--accent);font-weight:700}
+.reading{text-align:center;display:flex;flex-direction:column;gap:4px}
+.reading .ko{font-family:var(--serif);font-size:17px;font-weight:500;text-wrap:balance}
+.reading .sub{font-size:13px;color:var(--muted)}
+
+.timer{text-align:center;display:flex;flex-direction:column;gap:6px}
+.timer .label{font-size:12px;letter-spacing:.12em;color:var(--muted)}
+.timer .clock{font-family:var(--serif);font-size:52px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:.02em;line-height:1.1}
+.timer .today{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+
+.btn{appearance:none;border:0;border-radius:999px;padding:16px 20px;font:700 16px/1 var(--sans);cursor:pointer;width:100%}
+.btn.primary{background:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+
+.steps{display:flex;flex-direction:column;gap:6px;border-top:1px solid var(--line);padding-top:20px}
+.steps h2{font-family:var(--serif);font-size:17px;margin:0 0 4px}
+.steps p{margin:0;font-size:14px;color:var(--muted)}
+details{border-bottom:1px solid var(--line);padding-block:12px}
+summary{cursor:pointer;font-weight:700;font-size:15px}
+ol{margin:10px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:14px}
+.note{font-size:12px;color:var(--muted);margin-top:8px}
+.log{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums;display:flex;flex-direction:column;gap:2px;text-align:center}
+@media (prefers-reduced-motion:no-preference){.stele{transition:transform .4s ease}.resting .stele{transform:translateY(2px)}}
+</style>
+</head>
+<body>
+
+
+<div class="wrap" id="app">
+  <header>
+    <span class="brand">하마 모드</span>
+    <span class="tag">HANCHAE · 경기전 하마비</span>
+  </header>
+
+  <div class="stele" id="stele" aria-label="비신 문구">
+    <div class="col" id="c1">至此皆下<b>馬</b></div>
+    <div class="col" id="c2">雜<b>人</b>毋得入</div>
+  </div>
+  <div class="reading">
+    <span class="ko" id="ko">이곳에 이르면 모두 말에서 내리고, 잡인은 들어오지 말라</span>
+    <span class="sub" id="sub">경기전 하마비 원문</span>
+  </div>
+
+  <section class="timer" aria-live="polite">
+    <span class="label" id="state">휴대폰을 내려놓을 준비가 되었나요</span>
+    <span class="clock" id="clock">00:00:00</span>
+    <span class="today" id="today">오늘 내려놓은 시간 0분</span>
+  </section>
+
+  <button class="btn primary" id="toggle" type="button">말에서 내리기 · 시작</button>
+  <div class="log" id="log"></div>
+
+  <section class="steps">
+    <h2>알림까지 막으려면</h2>
+    <p>이 페이지는 내려놓은 시간을 재 줍니다. 알림을 끄는 건 휴대폰 설정이 해야 해서, 한 번만 연결해 두세요.</p>
+    <details>
+      <summary>아이폰 (단축어 앱)</summary>
+      <ol>
+        <li>단축어 앱 → 자동화 → 새로운 자동화 → NFC</li>
+        <li>스캔을 누르고 하마비 판석의 표시 자리에 휴대폰 윗부분을 댑니다</li>
+        <li>이름을 '하마비'로 저장하고 '즉시 실행'을 고릅니다</li>
+        <li>동작 추가: 집중 모드 설정 → 방해 금지 켜기</li>
+        <li>동작 추가: URL 열기 → 이 페이지 주소</li>
+      </ol>
+      <p class="note">iPhone XS 이후 기종 기준입니다. iOS 버전에 따라 메뉴 이름이 조금 다를 수 있어요.</p>
+    </details>
+    <details>
+      <summary>안드로이드</summary>
+      <ol>
+        <li>판석에 휴대폰 뒷면을 대면 이 페이지가 열립니다</li>
+        <li>빠른 설정에서 방해 금지를 켠 뒤 '말에서 내리기'를 누르세요</li>
+      </ol>
+      <p class="note">NFC로 방해 금지까지 자동으로 켜는 방법은 기종별로 확인 중입니다.</p>
+    </details>
+  </section>
+</div>
+
+<script>
+(function(){
+  var V={
+    v1:{a:'至此皆下<b>馬</b>',b:'雜<b>人</b>毋得入',ko:'이곳에 이르면 모두 말에서 내리고, 잡인은 들어오지 말라',sub:'경기전 하마비 원문'},
+    v2:{a:'至此皆下<b>憂</b>',b:'雜<b>念</b>毋得入',ko:'근심은 내려놓고, 잡념은 출입금지',sub:'憂 근심 우 · 念 생각 념'},
+    v3:{a:'至此皆下<b>機</b>',b:'雜<b>音</b>毋得入',ko:'폰은 내려놓고, 알림은 출입금지',sub:'機 틀 기 · 音 소리 음'}
+  };
+  var KEY='hama-mode-v1';
+  function load(){try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return {}}}
+  function save(s){try{localStorage.setItem(KEY,JSON.stringify(s))}catch(e){}}
+  var s=load();
+  var todayKey=new Date().toLocaleDateString('sv');
+  if(s.day!==todayKey){s.day=todayKey;s.total=0;s.sessions=[];}
+  s.sessions=s.sessions||[];s.total=s.total||0;
+
+  // 비신 버전: 링크 끝 #v1/#v2/#v3 (NFC 태그마다 실제 비신과 맞춤), 없으면 랜덤
+  var h=(location.hash||'').replace('#','');
+  var key=V[h]?h:['v1','v2','v3'][Math.floor(Math.random()*3)];
+  var v=V[key];
+  document.getElementById('c1').innerHTML=v.a;
+  document.getElementById('c2').innerHTML=v.b;
+  document.getElementById('ko').textContent=v.ko;
+  document.getElementById('sub').textContent=v.sub;
+
+  var $clock=document.getElementById('clock'),$state=document.getElementById('state'),
+      $today=document.getElementById('today'),$btn=document.getElementById('toggle'),
+      $log=document.getElementById('log'),$app=document.getElementById('app');
+  function fmt(ms){var t=Math.floor(ms/1000),hh=Math.floor(t/3600),mm=Math.floor(t%3600/60),ss=t%60;
+    return [hh,mm,ss].map(function(n){return String(n).padStart(2,'0')}).join(':')}
+  function mins(ms){var m=Math.round(ms/60000);return m>=60?Math.floor(m/60)+'시간 '+(m%60)+'분':m+'분'}
+  function render(){
+    var running=!!s.start, cur=running?Date.now()-s.start:0;
+    $clock.textContent=fmt(cur);
+    $today.textContent='오늘 내려놓은 시간 '+mins(s.total+cur);
+    $state.textContent=running?'말에서 내린 지':'휴대폰을 내려놓을 준비가 되었나요';
+    $btn.textContent=running?'다시 말에 오르기 · 종료':'말에서 내리기 · 시작';
+    $btn.className='btn '+(running?'ghost':'primary');
+    $app.classList.toggle('resting',running);
+    $log.innerHTML=s.sessions.slice(-3).reverse().map(function(x){return '<span>'+x.t+' · '+mins(x.ms)+'</span>'}).join('');
+  }
+  $btn.addEventListener('click',function(){
+    if(s.start){var ms=Date.now()-s.start;s.total+=ms;
+      s.sessions.push({t:new Date(s.start).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'}),ms:ms});s.start=null;}
+    else{s.start=Date.now();}
+    save(s);render();
+  });
+  render();setInterval(function(){if(s.start)render()},1000);
+})();
+</script>
+
+</body>
+</html>
