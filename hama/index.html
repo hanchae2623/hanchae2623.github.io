@@ -120,8 +120,8 @@ ol{margin:10px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:6px;
 /* 가로 + 진행 중 = 쉬는 화면: 경기전 수묵담채 배경 + 선비·말 그림(AI 생성 후 배경 제거) */
 .rest{display:none}
 @media (orientation:landscape) and (max-height:600px){
-  .running .wrap{display:none}
-  .running .rest{display:block}
+  .wrap{display:none}
+  .rest{display:block}
 }
 .rest{position:fixed;inset:0;overflow:hidden;background:#E9E3D6;color:#1D1B17;
   --glass:rgba(250,247,240,.62);--glass-line:rgba(255,255,255,.55);--ink2:#1D1B17;--mut2:#4F4A41}
@@ -174,6 +174,7 @@ ol{margin:10px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:6px;
 .hud .stopbtn{pointer-events:auto;appearance:none;border:1px solid var(--glass-line);border-radius:999px;padding:12px 18px;min-height:44px;
   font:700 14px/1 var(--sans);color:var(--ink2);cursor:pointer;background:var(--glass);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
 .hud .stopbtn:focus-visible{outline:3px solid #2F5D50;outline-offset:3px}
+.hud .stopbtn.go{background:#2F5D50;border-color:#2F5D50;color:#F0EDE6;padding:14px 22px;font-size:15px}
 .hud-right{display:flex;flex-direction:column;align-items:flex-end;gap:10px;max-width:min(36vw,330px)}
 .whisper{margin:0;padding:9px 14px;font-family:var(--serif);font-size:clamp(13px,3.9vh,16px);line-height:1.5;text-align:right;word-break:keep-all;color:var(--ink2);
   opacity:0;transform:translateY(6px);transition:opacity .9s ease,transform .9s ease}
@@ -312,7 +313,7 @@ ol{margin:10px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:6px;
 
 <!-- 가로 + 진행 중: 쉬는 화면 -->
 <div class="rest" id="rest" aria-label="쉬는 화면">
-  <div class="stage" id="stage" role="img" aria-label="갓 쓴 선비가 말을 타고 경기전 앞 하마비에 이르러 말에서 내려 고개 숙이는 그림">
+  <div class="stage" id="stage" data-phase="pre" role="img" aria-label="갓 쓴 선비가 말을 타고 경기전 앞 하마비에 이르러 말에서 내려 고개 숙이는 그림">
     <img class="bg" src="img/scene/bg-sm.webp" srcset="img/scene/bg-sm.webp 1180w, img/scene/bg.webp 1774w" sizes="max(100vw, 200vh)" alt="" decoding="async">
     <div class="carve" aria-hidden="true"><span id="k1"></span><span id="k2"></span></div>
     <div class="actor horse"><img src="img/scene/horse.webp" alt="" decoding="async"><i class="shadow"></i></div>
@@ -321,7 +322,7 @@ ol{margin:10px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:6px;
   </div>
   <div class="hud">
     <div class="hud-top">
-      <div class="glass timecard"><span class="lbl">말에서 내린 지</span><span class="clock" id="rclock">00:00:00</span><span class="sum" id="rsum">오늘 0분</span></div>
+      <div class="glass timecard"><span class="lbl" id="rlbl">말에서 내린 지</span><span class="clock" id="rclock">00:00:00</span><span class="sum" id="rsum">오늘 0분</span></div>
       <div class="hud-right">
         <button class="stopbtn" id="rstop" type="button">다시 말에 오르기 · 종료</button>
         <p class="glass whisper" id="whisper"></p>
@@ -418,7 +419,9 @@ ol{margin:10px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:6px;
   function render(){
     var running=!!s.start,cur=running?Date.now()-s.start:0;
     $clock.textContent=fmt(cur); $rclock.textContent=fmt(cur);
-    if(running){var t0=today0();$('rsum').textContent='오늘 '+mins(sum(liveDays(),t0,addDays(t0,1)));}
+    var t0=today0();$('rsum').textContent='오늘 '+mins(sum(liveDays(),t0,addDays(t0,1)));
+    $('rlbl').textContent=running?'말에서 내린 지':'하마비 앞에 이르렀어요';
+    var rb=$('rstop');rb.textContent=running?'다시 말에 오르기 · 종료':'말에서 내리기 · 시작';rb.className='stopbtn'+(running?'':' go');
     $state.textContent=running?'말에서 내린 지':'휴대폰을 내려놓을 준비가 되었나요';
     $btn.textContent=running?'다시 말에 오르기 · 종료':'말에서 내리기 · 시작';
     $btn.className='btn '+(running?'ghost':'primary');
@@ -454,7 +457,7 @@ ol{margin:10px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:6px;
     later(function(){phase('away');$stage.classList.add('walking')},900);
     later(function(){$stage.classList.remove('walking');done()},3600);
   }
-  function syncScene(){if(s.start&&restMQ.matches)playScene()}
+  function syncScene(){if(!restMQ.matches)return;if(s.start)playScene();else{clearTimers();$whisper.classList.remove('show');$stage.classList.remove('walking');phase('pre')}}
   if(restMQ.addEventListener)restMQ.addEventListener('change',syncScene);else if(restMQ.addListener)restMQ.addListener(syncScene);
 
   function start(){s.start=Date.now();save();render();renderStats();syncScene()}
@@ -477,9 +480,11 @@ ol{margin:10px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:6px;
   }
   $btn.addEventListener('click',function(){s.start?stop():start()});
   $('rstop').addEventListener('click',function(){
-    if(calm.matches||Date.now()-s.start>LONG){stop();return}
+    if(!s.start){start();return}                       // 가로 화면에서 바로 시작
+    if(Date.now()-s.start>LONG){stop();$whisper.textContent='6시간 넘게 기록됐어요. 세로로 돌려 시간을 확인해 주세요.';$whisper.classList.add('show');return}
+    if(calm.matches){stop();return}
     if(!restMQ.matches){stop();return}
-    leaveScene(stop);   // 선비가 다시 말에 올라 떠난 뒤 종료
+    leaveScene(function(){stop();phase('pre')});   // 선비가 다시 말에 올라 떠난 뒤 종료
   });
   $('fixSave').addEventListener('click',function(){var n=Math.max(1,Math.min(1440,parseInt($('fixMin').value,10)||0));record(Math.min(Date.now(),s.start+n*60000))});
   $('fixKeep').addEventListener('click',function(){record(Date.now())});
